@@ -50,11 +50,8 @@ static const struct wl_buffer_listener buffer_listener = {
 	.release = buffer_release
 };
 
-static struct buffer *create_buffer(struct window *window, struct buffer *buf,
-		int32_t width, int32_t height, int32_t scale, uint32_t format) {
-
-	width *= scale;
-	height *= scale;
+static struct buffer *create_buffer(struct wl_shm *shm, struct buffer *buf,
+		int32_t width, int32_t height, uint32_t format) {
 	uint32_t stride = width * 4;
 	uint32_t size = stride * height;
 
@@ -65,7 +62,7 @@ static struct buffer *create_buffer(struct window *window, struct buffer *buf,
 		return NULL; // never reached
 	}
 	void *data = mmap(NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-	struct wl_shm_pool *pool = wl_shm_create_pool(window->registry->shm, fd, size);
+	struct wl_shm_pool *pool = wl_shm_create_pool(shm, fd, size);
 	buf->buffer = wl_shm_pool_create_buffer(pool, 0,
 			width, height, stride, format);
 	wl_shm_pool_destroy(pool);
@@ -101,34 +98,30 @@ static void destroy_buffer(struct buffer *buffer) {
 	memset(buffer, 0, sizeof(struct buffer));
 }
 
-struct buffer *get_next_buffer(struct window *window) {
+struct pool_buffer *get_next_buffer(struct wl_shm *shm,
+		struct pool_buffer pool[2], uint32_t width, uint32_t height) {
 	struct buffer *buffer = NULL;
 
-	int i;
-	for (i = 0; i < 2; ++i) {
-		if (window->buffers[i].busy) {
+	for (size_t i = 0; i < sizeof(pool) / sizeof(pool[0]); ++i) {
+		if (buffers[i].busy) {
 			continue;
 		}
-		buffer = &window->buffers[i];
+		buffer = &buffers[i];
 	}
 
 	if (!buffer) {
 		return NULL;
 	}
 
-	if (buffer->width != window->width || buffer->height != window->height) {
+	if (buffer->width != width || buffer->height != height) {
 		destroy_buffer(buffer);
 	}
 
 	if (!buffer->buffer) {
-		if (!create_buffer(window, buffer,
-					window->width, window->height, window->scale,
+		if (!create_buffer(shm, buffer, width, height,
 					WL_SHM_FORMAT_ARGB8888)) {
 			return NULL;
 		}
 	}
-
-	window->cairo = buffer->cairo;
-	window->buffer = buffer;
 	return buffer;
 }
