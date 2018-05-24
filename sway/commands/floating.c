@@ -31,31 +31,10 @@ struct cmd_results *cmd_floating(int argc, char **argv) {
 		wants_floating = !container->is_floating;
 	} else {
 		return cmd_results_new(CMD_FAILURE, "floating",
-			"Expected 'floating <enable|disable|toggle>");
+			"Expected 'floating <enable|disable|toggle>'");
 	}
 
-	// Change from tiled to floating
-	if (!container->is_floating && wants_floating) {
-		struct sway_container *workspace = container_parent(
-				container, C_WORKSPACE);
-		container_remove_child(container);
-		container_add_floating(workspace, container);
-
-		struct sway_output *output = workspace->parent->sway_output;
-		output_damage_whole_container(output, container);
-		// Reset to sane size and position
-		container->width = 640;
-		container->height = 480;
-		container->x = workspace->width / 2 - container->width / 2;
-		container->y = workspace->height / 2 - container->height / 2;
-		view_autoconfigure(container->sway_view);
-		output_damage_whole_container(output, container);
-
-		seat_set_focus(config->handler_context.seat, container);
-		arrange_workspace(workspace);
-	} else if (container->is_floating && !wants_floating) {
-		// TODO
-	}
+	container_set_floating(container, wants_floating);
 
 	return cmd_results_new(CMD_SUCCESS, NULL, NULL);
 }
