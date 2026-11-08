@@ -1,3 +1,7 @@
+![Banner: a strict grid wall of frosted glass panes at dusk, the panes dim dusk blue and blurred with soft shadows between them, one pane near the centre clear and glowing warm amber, its rounded corners catching the light](banner.png)
+
+<p align="center"><img src="logo.png" alt="swayfx logo: a single rounded square of frosted glass photographed straight on against deep dusk blue, warm light glowing blurred through it and a soft shadow along its lower edge" width="200"></p>
+
 <p align="center">
     <img src="assets/swayfx_logo.svg" width="256" alt="swayfx logo">
 </p>
